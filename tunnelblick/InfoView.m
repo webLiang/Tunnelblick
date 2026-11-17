@@ -26,11 +26,12 @@
 #import "sharedRoutines.h"
 
 #import "UIHelper.h"
-#import "NSTimer+TB.h"
 #import "TBUserDefaults.h"
 
 
 extern TBUserDefaults * gTbDefaults;
+extern NSFileManager  * gFileMgr;
+extern NSString       * gDeployPath;
 
 
 @implementation InfoView
@@ -46,8 +47,6 @@ extern TBUserDefaults * gTbDefaults;
 -(void) dealloc {
 
 	[logo release];           logo        = nil;
-	[scrollTimer invalidate];
-	[scrollTimer release];    scrollTimer = nil;
 
 	[super dealloc];
 }
@@ -57,10 +56,27 @@ extern TBUserDefaults * gTbDefaults;
 	(void) dirtyRect;
 }
 
-- (void) substitute: (NSString *) newString
-                 in: (NSMutableAttributedString *) attrString {
-    NSRange range = [[attrString string] rangeOfString: @"@@STRING@@"];
-    [attrString replaceCharactersInRange: range withString: newString];
+- (void) configureReadOnlyTextView: (NSTextView *) textView scrollView: (NSScrollView *) scrollView {
+    [scrollView setHasHorizontalScroller: NO];
+    [scrollView setHasVerticalScroller: YES];
+    [scrollView setAutohidesScrollers: YES];
+
+    // The nib's fixed minimum width prevents wrapping when the window shrinks.
+    NSSize size = [scrollView contentSize];
+    [textView setEditable: NO];
+    [textView setHorizontallyResizable: NO];
+    [textView setVerticallyResizable: YES];
+    [textView setMinSize: NSMakeSize(0.0, size.height)];
+    [textView setMaxSize: NSMakeSize(FLT_MAX, FLT_MAX)];
+    [textView setAutoresizingMask: NSViewWidthSizable];
+    [textView setTextContainerInset: NSMakeSize(6.0, 6.0)];
+    [textView setFrameSize: size];
+    [[textView textContainer] setContainerSize: NSMakeSize(MAX(1.0, size.width - 12.0), FLT_MAX)];
+    [[textView textContainer] setWidthTracksTextView: YES];
+    [[textView textContainer] setHeightTracksTextView: NO];
+    [textView setContinuousSpellCheckingEnabled: NO];
+    [textView setAutomaticSpellingCorrectionEnabled: NO];
+    [textView setAllowsUndo: NO];
 }
 
 - (void) replaceString: (NSString *)                  oldString
@@ -111,6 +127,9 @@ extern TBUserDefaults * gTbDefaults;
         [infoLogoIV setImage: logo];
     }
 
+    [self configureReadOnlyTextView: infoDescriptionTV scrollView: infoDescriptionSV];
+    [self configureReadOnlyTextView: infoCreditTV scrollView: infoCreditSV];
+
     // If Resources has an "about.html", use that as the base for the license description
     // Using [[NSBundle mainBundle] pathForResource: @"about" ofType: @"html"] doesn't always work -- it is apparently cached by macOS.
     // If it is used immediately after the installer creates and populates Resources/Deploy, nil is returned instead of the path
@@ -127,7 +146,6 @@ extern TBUserDefaults * gTbDefaults;
                                    @"</div></center><body></html>"];
         NSMutableAttributedString * description = [[attributedStringFromHTML(html) mutableCopy] autorelease];
 		[description addAttribute: NSForegroundColorAttributeName value:[NSColor textColor]           range: NSMakeRange(0, [description length])];
-		[description addAttribute: NSBackgroundColorAttributeName value:[NSColor textBackgroundColor] range: NSMakeRange(0, [description length])];
         [[infoDescriptionTV textStorage] setAttributedString: description];
     } else {
 
@@ -156,10 +174,6 @@ extern TBUserDefaults * gTbDefaults;
                   urlString: @"https://openvpn.net/"
                          in: descriptionString];
 
-        [infoDescriptionTV setEditable: NO];
-        [infoDescriptionSV setHasHorizontalScroller: NO];
-        [infoDescriptionSV setHasVerticalScroller:   NO];
-
         // If Tunnelblick has been globally replaced with XXX, prefix the license description with "XXX is based on Tunnelblick."
         if (   ( ! [gTbDefaults boolForKey: @"doNotUnrebrandLicenseDescription"]  )
 			&& ( ! [@"Tunnelblick" isEqualToString: @"Tunnel" @"blick"]  )
@@ -173,15 +187,22 @@ extern TBUserDefaults * gTbDefaults;
         }
 
 		[descriptionString addAttribute: NSForegroundColorAttributeName value:[NSColor textColor]           range: NSMakeRange(0, [descriptionString length])];
-		[descriptionString addAttribute: NSBackgroundColorAttributeName value:[NSColor textBackgroundColor] range: NSMakeRange(0, [descriptionString length])];
-        NSDictionary * attributes = [NSDictionary dictionaryWithObject: NSRTFTextDocumentType forKey: NSDocumentTypeDocumentAttribute];
-        [infoDescriptionTV replaceCharactersInRange: NSMakeRange( 0, [[infoDescriptionTV string] length] )
-                                            withRTF: [descriptionString RTFFromRange: NSMakeRange( 0, [descriptionString length] ) documentAttributes: attributes]];
+        [descriptionString addAttribute: NSFontAttributeName value: [NSFont systemFontOfSize: [NSFont systemFontSize]] range: NSMakeRange(0, [descriptionString length])];
+        [[infoDescriptionTV textStorage] setAttributedString: descriptionString];
     }
 
-	// Credits: create HTML, convert to an NSMutableAttributedString, substitute localized strings, and display
-	//
-    // Credits data comes from the following arrays:
+    // Append the TOTP description below the license; the version area already contains its heading.
+    {
+        NSString * totpBody = NSLocalizedString(@"\n\nThis version can store a Google Authenticator root secret for each VPN credentials group. When enabled, Tunnelblick generates the current six-digit security code when you connect and appends it to your password.\n\nThe root secret is stored in the macOS Keychain on this computer. Anyone with access to this computer or the secret can generate your security codes. Do not share the QR code or secret with others. If this device is lost or compromised, revoke and re-create the two-factor authentication secret on the VPN server.", @"Window text");
+
+        NSMutableAttributedString * totpAttr = [[[NSMutableAttributedString alloc] initWithString: totpBody] autorelease];
+        NSRange bodyRange = NSMakeRange(0, [totpBody length]);
+        [totpAttr addAttribute: NSForegroundColorAttributeName value: [NSColor textColor] range: bodyRange];
+        [totpAttr addAttribute: NSFontAttributeName value: [NSFont systemFontOfSize: [NSFont systemFontSize]] range: bodyRange];
+        [[infoDescriptionTV textStorage] appendAttributedString: totpAttr];
+    }
+
+    // Keep all contributor names and localized roles in native attributed text.
 
     NSArray * mainCredits = @[
                              @[@"Angelo Laub",      NSLocalizedString(@"Founder, original program and documentation",  @"Credit description")],
@@ -407,270 +428,114 @@ extern TBUserDefaults * gTbDefaults;
 							@[@"Zozzi",                         NSLocalizedString(@"Slovak translation",                   @"Credit description")]
                             ];
 
-    BOOL rtl = [UIHelper languageAtLaunchWasRTL];
+    // HTML tables force expensive NSTextTable layout on the main thread while
+    // scrolling. Plain paragraphs wrap cheaply at every supported window width.
+    NSMutableAttributedString * creditsString = [[[NSMutableAttributedString alloc] init] autorelease];
+    NSMutableParagraphStyle * bodyStyle = [[[NSMutableParagraphStyle alloc] init] autorelease];
+    [bodyStyle setAlignment: NSNaturalTextAlignment];
+    [bodyStyle setBaseWritingDirection: ([UIHelper languageAtLaunchWasRTL] ? NSWritingDirectionRightToLeft : NSWritingDirectionLeftToRight)];
+    [bodyStyle setParagraphSpacing: 8.0];
+    NSMutableParagraphStyle * headingStyle = [[bodyStyle mutableCopy] autorelease];
+    [headingStyle setAlignment: NSCenterTextAlignment];
+    [headingStyle setParagraphSpacingBefore: 12.0];
+    [headingStyle setParagraphSpacing: 12.0];
 
-    // Construct an HTML page with the dummy credits, consisting of a table.
-    NSString * htmlHead = (@"<font face=\"Arial, Georgia, Garamond\">"
-                           @"<table width=\"100%\">"
-                           @"<tr><td colspan=\"2\">&nbsp;</td></tr>\n"
-                           @"<tr><td colspan=\"2\"><strong><center>"
-                           @"@@STRING@@"  // "TUNNELBLICK is brought to you by"
-                           @"</center></strong></td></tr>\n<tr><td colspan=\"2\">&nbsp;</td></tr>\n");
-
-    NSString * htmlMainTb = (  rtl
-                             ? (@"<tr><td width=\"60%\" align=\"right\" valign=\"top\">"
-                                @"@@STRING@@&nbsp;&nbsp;"                   // What the person contributed
-                                @"</td>"
-                                @"<td width=\"40%\" valign=\"top\">"
-                                @"<strong>@@STRING@@</strong>"				// Main contribution people
-                                @"</td></tr>\n")
-                             : (@"<tr><td width=\"40%\" align=\"right\" valign=\"top\">"
-                                @"<strong>@@STRING@@&nbsp;&nbsp;</strong>"  // Main contribution people
-                                @"</td><td width=\"60%\" valign=\"top\">"
-                                @"@@STRING@@"                               // What the person contributed
-                                @"</td></tr>\n"));
-
-    NSString * htmlAfterMain = (@"<tr><td colspan=\"2\">&nbsp;</td></tr>\n"
-                                @"<tr><td colspan=\"2\">&nbsp;</td></tr>\n"
-                                @"<tr><td colspan=\"2\">&nbsp;</td></tr>\n"
-                                @"<tr><td colspan=\"2\"><strong><center>"
-                                @"@@STRING@@"  // "Additional contributions by"
-                                @"</center></strong></td></tr>\n<tr><td colspan=\"2\">&nbsp;</td></tr>\n");
-
-    NSString * htmlPgmTb = (  rtl
-                            ? (@"<tr><td width=\"60%\" align=\"right\" valign=\"top\">"
-                               @"@@STRING@@&nbsp;&nbsp;"                    // What the person contributed
-                               @"</td><td width=\"40%\" valign=\"top\">"
-                               @"<strong>@@STRING@@</strong>"				// Program contribution people
-                               @"</td></tr>\n")
-                            : (@"<tr><td width=\"40%\" align=\"right\" valign=\"top\">"
-                               @"<strong>@@STRING@@&nbsp;&nbsp;</strong>"   // Program contribution people
-                               @"</td>"
-                               @"<td width=\"60%\" valign=\"top\">"
-                               @"@@STRING@@"                                // What the person contributed
-                               @"</td></tr>\n"));
-
-    NSString * htmlAfterPgm = (@"<tr><td colspan=\"2\">&nbsp;</td></tr>\n"
-                               @"<tr><td colspan=\"2\">&nbsp;</td></tr>\n"
-                               @"<tr><td colspan=\"2\">"
-                               @"<strong><center>@@STRING@@</center></strong>"  // "Localization by"
-                               @"</td></tr>\n"
-                               @"<tr><td colspan=\"2\">&nbsp;</td></tr>\n");
-
-    NSString * htmlLocTb = (  rtl
-                            ? (@"<tr><td width=\"60%\" align=\"right\" valign=\"top\">"
-                               @"@@STRING@@&nbsp;&nbsp;"                    // <Language> localization
-                               @"</td>"
-                               @"<td width=\"40%\" valign=\"top\">"
-                               @"<strong>@@STRING@@</strong>"				// Localization people
-                               @"</td></tr>\n")
-                            : (@"<tr><td width=\"40%\" align=\"right\" valign=\"top\">"
-                               @"<strong>@@STRING@@&nbsp;&nbsp;</strong>"	// Localization people
-                               @"</td>"
-                               @"<td width=\"60%\" valign=\"top\">"
-                               @"@@STRING@@"                                // <Language> localization
-                               @"</td></tr>\n"));
-
-    NSString * htmlTail = @"</table></font>";
-
-    NSMutableString * creditsHTML = [NSMutableString stringWithCapacity:1000];
-
-    unsigned i;
-
-    // Create HTML containing @@STRING@@ dummies
-
-    [creditsHTML appendString: htmlHead];
-
-    for (  i=0; i<[mainCredits count]; i++  ) {
-        [creditsHTML appendString: htmlMainTb];
-    }
-
-    [creditsHTML appendString: htmlAfterMain];
-
-    for (  i=0; i<[pgmCredits count]; i++  ) {
-        [creditsHTML appendString: htmlPgmTb];
-    }
-
-    [creditsHTML appendString: htmlAfterPgm];
-
-    for (  i=0; i<[locCredits count]; i++  ) {
-        [creditsHTML appendString: htmlLocTb];
-    }
-
-    [creditsHTML appendString: htmlTail];
-
-    // Create an NSMutableAttributedString from the HTML
-    NSMutableAttributedString * creditsString = [[attributedStringFromHTML(creditsHTML) mutableCopy] autorelease];
-
-    // Make substitutions in the NSMutableAttributedString
-
-    [self substitute: NSLocalizedString(@"TUNNELBLICK is brought to you by", @"Window text") in: creditsString];
-
-    NSEnumerator * e = [mainCredits objectEnumerator];
-    NSArray * row;
-    while (  (row = [e nextObject])  ) {
-
-        NSString * name = [row objectAtIndex: 0];
-        NSString * role = [row objectAtIndex: 1];
-
-        if (  [name isEqualToString: @"LEAD_TRANSLATORS"]  ) {
-            name = @" ";
-            role = @" ";
-        } else if (  [role isEqualToString: @"LANGUAGE_TRANSLATION"]  ) {
-            role = @"Translation leaders";
+    NSDictionary * bodyAttributes = @{NSFontAttributeName: [NSFont systemFontOfSize: [NSFont systemFontSize]],
+                                      NSForegroundColorAttributeName: [NSColor textColor],
+                                      NSParagraphStyleAttributeName: bodyStyle};
+    NSDictionary * headingAttributes = @{NSFontAttributeName: [NSFont boldSystemFontOfSize: [NSFont systemFontSize]],
+                                         NSForegroundColorAttributeName: [NSColor textColor],
+                                         NSParagraphStyleAttributeName: headingStyle};
+    NSArray * groups = @[mainCredits, pgmCredits, locCredits];
+    NSArray * headings = @[NSLocalizedString(@"TUNNELBLICK is brought to you by", @"Window text"),
+                           NSLocalizedString(@"Additional contributions by", @"Window text"),
+                           NSLocalizedString(@"Translation by", @"Window text")];
+    for (NSUInteger groupIndex = 0; groupIndex < [groups count]; groupIndex++) {
+        NSAttributedString * heading = [[[NSAttributedString alloc] initWithString: [[headings objectAtIndex: groupIndex] stringByAppendingString: @"\n"]
+                                                                       attributes: headingAttributes] autorelease];
+        [creditsString appendAttributedString: heading];
+        NSString * previousName = nil;
+        for (NSArray * row in [groups objectAtIndex: groupIndex]) {
+            NSString * name = [row objectAtIndex: 0];
+            NSString * role = [row objectAtIndex: 1];
+            if (groupIndex == 0) {
+                if ([name isEqualToString: @"LEAD_TRANSLATORS"]) {
+                    continue;
+                }
+                if ([role isEqualToString: @"LANGUAGE_TRANSLATION"]) {
+                    role = @"Translation leaders";
+                }
+            }
+            if (groupIndex == 2 && [previousName isEqualToString: name]) {
+                name = @"";
+            } else {
+                previousName = name;
+            }
+            NSString * text = ([name length] == 0
+                              ? [role stringByAppendingString: @"\n"]
+                              : [NSString stringWithFormat: @"%@ — %@\n", name, role]);
+            NSMutableAttributedString * credit = [[[NSMutableAttributedString alloc] initWithString: text attributes: bodyAttributes] autorelease];
+            if ([name length] != 0) {
+                [credit addAttribute: NSFontAttributeName value: [NSFont boldSystemFontOfSize: [NSFont systemFontSize]] range: NSMakeRange(0, [name length])];
+            }
+            [creditsString appendAttributedString: credit];
         }
-
-		if (  [UIHelper languageAtLaunchWasRTL]  ) {
-			[self substitute: role in: creditsString];
-			[self substitute: name in: creditsString];
-		} else {
-			[self substitute: name in: creditsString];
-			[self substitute: role in: creditsString];
-		}
     }
-
-    [self substitute: NSLocalizedString(@"Additional contributions by", @"Window text") in: creditsString];
-
-    e = [pgmCredits objectEnumerator];
-    while (  (row = [e nextObject])  ) {
-        NSString * name = [row objectAtIndex: 0];
-        NSString * role = [row objectAtIndex: 1];
-		if (  [UIHelper languageAtLaunchWasRTL]  ) {
-			[self substitute: role in: creditsString];
-			[self substitute: name in: creditsString];
-		} else {
-			[self substitute: name in: creditsString];
-			[self substitute: role in: creditsString];
-		}
-    }
-
-    [self substitute: NSLocalizedString(@"Translation by", @"Window text") in: creditsString];
-
-    e = [locCredits objectEnumerator];
-	NSString * previousName = nil;
-    while (  (row = [e nextObject])  ) {
-        NSString * name = [row objectAtIndex: 0];
-		if (  [previousName isEqualToString: name]  ) {
-			name = @" ";
-		} else {
-			previousName = name;
-		}
-        NSString * role = [row objectAtIndex: 1];
-		if (  [UIHelper languageAtLaunchWasRTL]  ) {
-			[self substitute: role in: creditsString];
-			[self substitute: name in: creditsString];
-		} else {
-			[self substitute: name in: creditsString];
-			[self substitute: role in: creditsString];
-		}
-    }
-
-	[creditsString addAttribute: NSForegroundColorAttributeName value:[NSColor textColor]           range: NSMakeRange(0, [creditsString length])];
-	[creditsString addAttribute: NSBackgroundColorAttributeName value:[NSColor textBackgroundColor] range: NSMakeRange(0, [creditsString length])];
-
-	// Convert the NSMutableAttributedString to RTF
-    NSDictionary * attributes = [NSDictionary dictionaryWithObject: NSRTFTextDocumentType forKey: NSDocumentTypeDocumentAttribute];
-    NSData * rtfData = [creditsString RTFFromRange: NSMakeRange(0, [creditsString length])
-                                documentAttributes: attributes];
-
-    // Display the RTF
-    [infoCreditSV setHasHorizontalScroller: NO];
-    [infoCreditSV setHasVerticalScroller:   NO];
-
-    [infoCreditTV setEditable:              NO];
-    [infoCreditTV replaceCharactersInRange: NSMakeRange( 0, 0 ) withRTF: rtfData];
-
+    [[infoCreditTV textStorage] setAttributedString: creditsString];
     [infoCopyrightTFC setTitle: copyrightNotice()];
 }
 
--(void) oldViewWillDisappear: (NSView *) view identifier: (NSString *) identifier
-{
-	(void) view;
-	(void) identifier;
-
-    [scrollTimer invalidate];
-    [self setScrollTimer: nil];
-}
-
-
 -(void) newViewDidAppear: (NSView *) view
 {
-	(void) view;
-
-    requestedPosition = 0.0;
-    restartAtTop = YES;
-    startTime = [NSDate timeIntervalSinceReferenceDate] + 2.0;  // Time between initial display and start of scrolling (but it also
-                                                                // takes time to scroll to the bottom of the display before moving the text)
-    [infoCreditTV scrollPoint:NSMakePoint( 0.0, 0.0 )];
-
-    [scrollTimer invalidate];
-    [self setScrollTimer: [NSTimer scheduledTimerWithTimeInterval: 0.03
-                                                           target: self
-                                                         selector: @selector(scrollCredits:)
-                                                         userInfo: nil
-                                                          repeats: YES]];
-    [scrollTimer tbSetTolerance: -1.0];
+    (void) view;
 }
-
 
 -(void) newViewWillAppear: (NSView *) view identifier: (NSString *) identifier
 {
+    (void) view;
     (void) identifier;
 
-    [self newViewDidAppear: view];
+    // Credits stay still until the user scrolls, so this page has no recurring
+    // timer or continuous text redraws and remains readable.
+    [infoCreditTV scrollPoint: NSZeroPoint];
+    [infoDescriptionTV scrollPoint: NSZeroPoint];
 }
 
-- (void)scrollCredits:(NSTimer *)timer
+// Show the fork version in bold, followed by the TOTP variant label in red.
+-(void) updateVersionDisplay
 {
-	(void) timer;
+    NSString * deployedString = (  gDeployPath && [gFileMgr fileExistsAtPath: gDeployPath]
+                                 ? NSLocalizedString(@" (Deployed)", @"Window title")
+                                 : @"");
+    NSString * versionLine = [NSString stringWithFormat: @"%@%@", tunnelblickVersion([NSBundle mainBundle]), deployedString];
+    NSString * totpLine    = NSLocalizedString(@"Automatic Security Code (TOTP) Version", @"Window text");
+    NSString * fullText    = [NSString stringWithFormat: @"%@\n%@", versionLine, totpLine];
 
-    if (  lastPosition != [[infoCreditSV contentView] bounds].origin.y  ) {
-        // Manual scroll has occurred. Pause the auto-scroll for at least a second.
-        startTime = [NSDate timeIntervalSinceReferenceDate] + 1.0;
+    NSFont * versionFont = [NSFont boldSystemFontOfSize: [NSFont systemFontSize]];
+    NSFont * totpFont    = [NSFont systemFontOfSize: [NSFont systemFontSize]];
 
-        requestedPosition = lastPosition;
-        restartAtTop = NO;
+    NSMutableAttributedString * attrString = [[[NSMutableAttributedString alloc] initWithString: fullText] autorelease];
+
+    NSRange versionRange = NSMakeRange(0, [versionLine length]);
+    [attrString addAttribute: NSForegroundColorAttributeName value: [NSColor controlTextColor] range: versionRange];
+    [attrString addAttribute: NSFontAttributeName value: versionFont range: versionRange];
+
+    NSRange totpRange = NSMakeRange([versionLine length] + 1, [totpLine length]);
+    [attrString addAttribute: NSForegroundColorAttributeName value: [NSColor systemRedColor] range: totpRange];
+    [attrString addAttribute: NSFontAttributeName value: totpFont range: totpRange];
+
+    NSTextField * versionField = (NSTextField *)[infoVersionTFC controlView];
+    if (  versionField  ) {
+        [versionField setEditable: NO];
+        [versionField setSelectable: NO];
+        [versionField setAllowsEditingTextAttributes: NO];
+        [versionField setRefusesFirstResponder: YES];
+        [versionField setAttributedStringValue: attrString];
+    } else {
+        [infoVersionTFC setTitle: fullText];
     }
-
-    if ([NSDate timeIntervalSinceReferenceDate] >= startTime) {
-        if (  restartAtTop  ) {
-            // Reset the startTime
-            startTime = [NSDate timeIntervalSinceReferenceDate] + 1.0;  // Time to allow for fade in at top before scrolling
-            restartAtTop = NO;
-
-            // Fade back in
-            if (   [infoCreditSV respondsToSelector: @selector(animator)]
-                && [[infoCreditSV animator] respondsToSelector: @selector(setAlphaValue:)]  ) {
-                [[infoCreditSV animator] setAlphaValue: 1.0];
-            }
-            // Set the position
-            [infoCreditTV scrollPoint:NSMakePoint( 0.0, 0.0 )];
-        } else if (  requestedPosition > [infoCreditTV bounds].size.height + 200.0  ) {
-            // Reset the startTime
-            startTime = [NSDate timeIntervalSinceReferenceDate] + 1.0;  // Time from fading out at end to fade in at top
-
-            // Reset the position
-            requestedPosition = 0.0;
-            restartAtTop = YES;
-
-            // Fade out quietly
-            if (   [infoCreditSV respondsToSelector: @selector(animator)]
-                && [[infoCreditSV animator] respondsToSelector: @selector(setAlphaValue:)]  ) {
-                [[infoCreditSV animator] setAlphaValue: 0.0];
-            }
-        } else {
-            // Scroll to the position
-            [infoCreditTV scrollPoint:NSMakePoint( 0.0, requestedPosition )];
-
-            // Increment the scroll position
-            requestedPosition += 1.0;
-        }
-    }
-
-    lastPosition = [[infoCreditSV contentView] bounds].origin.y;
 }
 
 TBSYNTHESIZE_OBJECT_GET(retain, NSTextFieldCell *, infoVersionTFC)
-TBSYNTHESIZE_OBJECT(retain, NSTimer *, scrollTimer, setScrollTimer)
 
 @end

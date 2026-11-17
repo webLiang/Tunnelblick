@@ -2867,3 +2867,106 @@
 
 /* Window text VPNService */
 "Your account status could not be verified:\n     %@." = "Your account status could not be verified:\n     %@.";
+
+/* Window text TOTP */
+"Automatic Security Code (TOTP)" = "Automatic Security Code (TOTP)";
+
+/* Checkbox name TOTP */
+"Enable automatic security code from Google Authenticator" = "Enable automatic security code from Google Authenticator";
+
+/* Window text TOTP */
+"Secret or otpauth URI:" = "Secret or otpauth URI:";
+
+/* Window text TOTP */
+"otpauth://totp/... or Base32 secret" = "otpauth://totp/... or Base32 secret";
+
+/* Button TOTP */
+"Import QR Image…" = "Import QR Image…";
+
+/* Button TOTP */
+"Clear Secret" = "Clear Secret";
+
+/* Window text TOTP */
+"Security warning: the root secret is stored in this Mac's Keychain. Anyone with access to this computer or the secret can generate your codes. Never share the QR code or secret." = "Security warning: the root secret is stored in this Mac's Keychain. Anyone with access to this computer or the secret can generate your codes. Never share the QR code or secret.";
+
+/* Button TOTP */
+"Configure automatic security code…" = "Configure automatic security code…";
+
+/* Window title TOTP */
+"Configure Automatic Security Code" = "Configure Automatic Security Code";
+
+/* Window text TOTP */
+"Paste a Google Authenticator otpauth:// URI or Base32 secret. The root secret is stored in the macOS Keychain on this computer. Anyone with access to this computer or the secret can generate your security codes. Do not share the QR code or secret with others." = "Paste a Google Authenticator otpauth:// URI or Base32 secret. The root secret is stored in the macOS Keychain on this computer. Anyone with access to this computer or the secret can generate your security codes. Do not share the QR code or secret with others.";
+
+/* Window title TOTP */
+"Invalid Secret" = "Invalid Secret";
+
+/* Window text TOTP */
+"The secret could not be saved." = "The secret could not be saved.";
+
+/* Window text TOTP */
+"Could not save the TOTP secret to the Keychain." = "Could not save the TOTP secret to the Keychain.";
+
+/* Window title TOTP */
+"Import Failed" = "Import Failed";
+
+/* Window text TOTP */
+"Could not import the QR code." = "Could not import the QR code.";
+
+/* Window text TOTP */
+"The TOTP secret is empty." = "The TOTP secret is empty.";
+
+/* Window text TOTP */
+"The otpauth URI is invalid or does not contain a valid secret." = "The otpauth URI is invalid or does not contain a valid secret.";
+
+/* Window text TOTP */
+"The pasted text is not a valid otpauth URI or Base32 secret." = "The pasted text is not a valid otpauth URI or Base32 secret.";
+
+/* Window text TOTP */
+"No image file was selected." = "No image file was selected.";
+
+/* Window text TOTP */
+"Could not read the selected image file." = "Could not read the selected image file.";
+
+/* Window text TOTP */
+"Could not convert the image for QR decoding." = "Could not convert the image for QR decoding.";
+
+/* Window text TOTP */
+"QR code detection failed." = "QR code detection failed.";
+
+/* Window text TOTP */
+"No QR code was found in the image." = "No QR code was found in the image.";
+
+/* Window text TOTP */
+"Automatic Security Code (TOTP) Version" = "Automatic Security Code (TOTP) Version";
+"Automatic security code authentication failed after two retries. Check the saved password, secret, and system time." = "Automatic security code authentication failed after two retries. Check the saved password, secret, and system time.";
+
+/* Window text TOTP */
+"\n\nThis version can store a Google Authenticator root secret for each VPN credentials group. When enabled, Tunnelblick generates the current six-digit security code when you connect and appends it to your password.\n\nThe root secret is stored in the macOS Keychain on this computer. Anyone with access to this computer or the secret can generate your security codes. Do not share the QR code or secret with others. If this device is lost or compromised, revoke and re-create the two-factor authentication secret on the VPN server." = "\n\nThis version can store a Google Authenticator root secret for each VPN credentials group. When enabled, Tunnelblick generates the current six-digit security code when you connect and appends it to your password.\n\nThe root secret is stored in the macOS Keychain on this computer. Anyone with access to this computer or the secret can generate your security codes. Do not share the QR code or secret with others. If this device is lost or compromised, revoke and re-create the two-factor authentication secret on the VPN server.";
+
+/* Window title TOTP */
+"Configuration Successful" = "Configuration Successful";
+
+/* Window text TOTP */
+"Automatic security code has been enabled for this credentials group." = "Automatic security code has been enabled for this credentials group.";
+
+/* Window title TOTP */
+"Import Successful" = "Import Successful";
+
+/* Window text TOTP */
+"The TOTP secret from the QR code has been saved." = "The TOTP secret from the QR code has been saved.";
+
+/* Window title TOTP */
+"Cleared" = "Cleared";
+
+/* Window text TOTP */
+"The automatic security code secret has been removed." = "The automatic security code secret has been removed.";
+
+/* Window text TOTP */
+"Are you sure you want to remove the automatic security code secret?" = "Are you sure you want to remove the automatic security code secret?";
+
+/* Button TOTP */
+"Clear Automatic Security Code" = "Clear Automatic Security Code";
+
+/* Window text TOTP */
+"You can also manage this in Options → Advanced → VPN Credentials." = "You can also manage this in Options → Advanced → VPN Credentials.";

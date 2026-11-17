@@ -162,13 +162,15 @@ CopyGitInformationToInfoPlist() {
     # Warn about uncommitted changes except for Debug builds
     if [ -e "../.git" -a  "$(which git)" != "" ] ; then
         git_hash="$(git rev-parse HEAD)"
-        git_status="$(git status -s | tr '\n' ' ' )"
+        git_status="$(git -c core.quotePath=false status -s | tr '\n' ' ' )"
         if [  "$git_status" != "" -a "${CONFIGURATION}" != "Debug" ] ; then
             echo "warning: uncommitted changes:"
             echo "$git_status"
         fi
-        changeEntry "${APP_PATH}/Contents/Info.plist" TBGITHASH   "${git_hash}"
-        changeEntry "${APP_PATH}/Contents/Info.plist" TBGITSTATUS "${git_status}"
+        # Git paths may contain backslashes, ampersands, or XML characters.
+        # Store them as plist strings instead of using a sed replacement.
+        plutil -replace TBGitHash   -string "${git_hash}"   "${APP_PATH}/Contents/Info.plist"
+        plutil -replace TBGitStatus -string "${git_status}" "${APP_PATH}/Contents/Info.plist"
     fi
 }
 

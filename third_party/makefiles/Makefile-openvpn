@@ -79,8 +79,8 @@ built-openvpn-prepare:
 
 built-openvpn: built-openvpn-prepare built-lzo built-lz4 built-pkcs11-helper built-allssl
 	@echo "THIRD_PARTY: Building OpenVPN..."
-	cd $(BUILD_DIR) ; \
-	for openvpn_name in $$(ls openvpn); do \
+	set -e; cd $(BUILD_DIR) ; \
+	for openvpn_name in $(OPENVPN_BUILD_VERSIONS); do \
         if [ -d $(BUILD_DIR)/openvpn/$$openvpn_name/openvpn ] ; then \
             cd $(BUILD_DIR)/openvpn/$$openvpn_name/openvpn ; \
             openvpn_major_minor="$${openvpn_name:8:3}" ; \
@@ -143,7 +143,7 @@ built-openvpn: built-openvpn-prepare built-lzo built-lz4 built-pkcs11-helper bui
                                 CC="$(CC)" \
                                     CFLAGS="$(CFLAGS) -I. -arch $$a $(OPENVPN_DEPRECATED_LLVN_OPTION) -D __APPLE_USE_RFC_3542" \
                                     LZO_CFLAGS="-I$(LZO_STAGING_DIR)_$$a/include" \
-                                    LZO_LIBS="-L$(LZO_STAGING_DIR)_$$a/lib -llzo2" \
+                                    LZO_LIBS="$(LZO_STAGING_DIR)_$$a/lib/liblzo2.a" \
                                     LZ4_CFLAGS="-I$(LZ4_STAGING_DIR)_$$a/include" \
                                     LZ4_LIBS="-L$(LZ4_STAGING_DIR)_$$a/lib -llz4" \
                                     OPENSSL_CFLAGS="-I$${ssl_staging_dir}_$$a/include" \
@@ -153,7 +153,7 @@ built-openvpn: built-openvpn-prepare built-lzo built-lz4 built-pkcs11-helper bui
                                     OPENSSL_SSL_LIBS="$${ssl_staging_dir}_$$a/lib/libssl.a" \
                                     OPENSSL_CRYPTO_LIBS="$${ssl_staging_dir}_$$a/lib/libcrypto.a -lz" \
                                     PKCS11_HELPER_CFLAGS="-I$(PKCS11_STAGING_DIR)_$$a/include/" \
-                                    PKCS11_HELPER_LIBS="-L$(PKCS11_STAGING_DIR)_$$a/lib -lpkcs11-helper" \
+                                    PKCS11_HELPER_LIBS="$(PKCS11_STAGING_DIR)_$$a/lib/libpkcs11-helper.a" \
                                     OS_VERSION=$$(uname -r) \
                                     ./configure \
                                         --build="$$TB_CONFIGURE_BUILD" \
@@ -166,7 +166,7 @@ built-openvpn: built-openvpn-prepare built-lzo built-lz4 built-pkcs11-helper bui
                                 CC="$(CC)" \
                                     CFLAGS="$(CFLAGS) -I. -arch $$a $(OPENVPN_DEPRECATED_LLVN_OPTION) -D __APPLE_USE_RFC_3542" \
                                     LZO_CFLAGS="-I$(LZO_STAGING_DIR)_$$a/include" \
-                                    LZO_LIBS="-L$(LZO_STAGING_DIR)_$$a/lib -llzo2" \
+                                    LZO_LIBS="$(LZO_STAGING_DIR)_$$a/lib/liblzo2.a" \
                                     LZ4_CFLAGS="-I$(LZ4_STAGING_DIR)_$$a/include" \
                                     LZ4_LIBS="-L$(LZ4_STAGING_DIR)_$$a/lib -llz4" \
                                     OPENSSL_CFLAGS="-I$${ssl_staging_dir}_$$a/include" \

@@ -5,6 +5,9 @@ third_party/do-not-clean
 third_party/products/
 third_party/sources/IOUserEthernetController.h
 tunnelblick/build
+dist/
+tunnelblick/com.apple.DeveloperTools/
+__pycache__/
 
 # Xcode 7 user data
 xcuserdata/

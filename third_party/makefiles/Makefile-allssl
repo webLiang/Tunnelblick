@@ -48,6 +48,7 @@ built-allssl-prepare:
 
 built-allssl: built-allssl-prepare
 	@echo "THIRD_PARTY: Building all SSL variants..."
+	set -e; \
 	for ssldir in $(shell find -xsE $(BUILD_DIR) -depth 1 -type d -iregex ".*/(libre|open){1}ssl-.*" ); do \
 		sslversion=$${ssldir##*/}; \
 		sslvariant=$${sslversion%-*}; \
@@ -83,13 +84,16 @@ built-allssl: built-allssl-prepare
 			cd $${ssldir}; \
 			staging="$(STAGING_DIR)/$${sslversion}_$$a"; \
 			echo "Clean $${sslversion} for $$a ($$ssl_arch)" ; \
-			$(MAKE) clean; \
+			if [ -f Makefile ]; then $(MAKE) clean; fi; \
 			echo "Make $${sslversion} for $$a ($$ssl_arch)" ; \
 			echo "CC: $(CC)"; \
 			echo "CFLAGS: $(CFLAGS)"; \
 			if [ "$${sslversion}" = "$(OPENSSL_1_1_NAME)" ] || [ "$${sslversion}" = "$(OPENSSL_3_0_NAME)" ] ; then \
 				CC=$(CC) CFLAGS="$(CFLAGS) -arch $$a" ./Configure no-shared zlib no-asm --openssldir="$$staging" $$ssl_arch; \
-				$(MAKE) build_libs build_apps openssl.pc libssl.pc libcrypto.pc; \
+				$(MAKE) build_generated; \
+				$(MAKE) build_libs; \
+				$(MAKE) build_apps; \
+				$(MAKE) openssl.pc libssl.pc libcrypto.pc; \
 				echo "Install $${sslversion} for $$a to $$staging" ; \
 				$(MAKE) DESTDIR="$$staging" install_sw; \
 				mv "$$staging/usr/local/bin"     "$$staging/bin" ;\

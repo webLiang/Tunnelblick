@@ -577,11 +577,7 @@ static BOOL firstTimeShowingWindow = TRUE;
     } else if (   view == utilitiesPrefsView  ) {
         [[self window] makeFirstResponder: [utilitiesPrefsView utilitiesHelpButton]];
     } else if (   view == infoPrefsView  ) {
-        NSString * deployedString = (  gDeployPath && [gFileMgr fileExistsAtPath: gDeployPath]
-                                     ? NSLocalizedString(@" (Deployed)", @"Window title")
-                                     : @"");
-        NSString * version = [NSString stringWithFormat: @"%@%@", tunnelblickVersion([NSBundle mainBundle]), deployedString];
-        [[infoPrefsView infoVersionTFC] setTitle: version];
+        [infoPrefsView updateVersionDisplay];
 		[infoPrefsView newViewDidAppear: infoPrefsView];	// Trigger the scrolling
     } else {
         NSLog(@"newViewDidAppear: invoked with unknown view");

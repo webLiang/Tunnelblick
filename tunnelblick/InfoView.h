@@ -38,18 +38,12 @@
     
     NSImage                     * logo;
     
-    NSTimer                     * scrollTimer;
-    NSTimeInterval                startTime;
-    CGFloat                       requestedPosition;
-    CGFloat                       lastPosition;
-    BOOL                          restartAtTop;
 }
 
--(void) oldViewWillDisappear: (NSView *) view identifier: (NSString *) identifier;
 -(void) newViewWillAppear:    (NSView *) view identifier: (NSString *) identifier;
 -(void) newViewDidAppear:     (NSView *) view;
+-(void) updateVersionDisplay;
 
 TBPROPERTY_READONLY(NSTextFieldCell *, infoVersionTFC)
-TBPROPERTY(NSTimer *, scrollTimer, setScrollTimer)
 
 @end

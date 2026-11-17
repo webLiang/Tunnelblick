@@ -177,6 +177,8 @@ TUNTAP_PREBUILT_TUN_NOTARIZED = $(TOPDIR)/tun-notarized.kext
 OPENVPN_SOURCE_DIR = $(SOURCES_DIR)/openvpn
 OPENVPN_BUILD_DIR = $(BUILD_DIR)/openvpn
 OPENVPN_PRODUCTS_DIR = $(PRODUCTS_DIR)/openvpn
+# Override to rebuild selected versions while preserving other validated products.
+OPENVPN_BUILD_VERSIONS ?= $(notdir $(wildcard $(OPENVPN_SOURCE_DIR)/*))
 
 PATCHES_DIR = $(SOURCES_DIR)/patches
 

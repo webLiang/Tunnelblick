@@ -2870,3 +2870,105 @@
 
 /* Window text VPNService */
 "Your account status could not be verified:\n     %@." = "無法驗證你的帳戶狀態：\n     %@。";
+
+/* Window text TOTP */
+"Automatic Security Code (TOTP)" = "自動安全碼 (TOTP)";
+
+/* Checkbox name TOTP */
+"Enable automatic security code from Google Authenticator" = "啟用 Google Authenticator 自動安全碼";
+
+/* Window text TOTP */
+"Secret or otpauth URI:" = "密鑰或 otpauth URI：";
+
+/* Window text TOTP */
+"otpauth://totp/... or Base32 secret" = "otpauth://totp/... 或 Base32 密鑰";
+
+/* Button TOTP */
+"Import QR Image…" = "從圖片匯入 QR…";
+
+/* Button TOTP */
+"Clear Secret" = "清除密鑰";
+
+/* Window text TOTP */
+"Security warning: the root secret is stored in this Mac's Keychain. Anyone with access to this computer or the secret can generate your codes. Never share the QR code or secret." = "安全警告：根密鑰儲存在本機 macOS 鑰匙圈中。任何能存取此電腦或取得密鑰的人都能產生你的安全碼。切勿分享 QR 碼或密鑰。";
+
+/* Button TOTP */
+"Configure automatic security code…" = "設定自動安全碼…";
+
+/* Window title TOTP */
+"Configure Automatic Security Code" = "設定自動安全碼";
+
+/* Window text TOTP */
+"Paste a Google Authenticator otpauth:// URI or Base32 secret. The root secret is stored in the macOS Keychain on this computer. Anyone with access to this computer or the secret can generate your security codes. Do not share the QR code or secret with others." = "貼上 Google Authenticator 的 otpauth:// URI 或 Base32 密鑰。根密鑰將儲存在本機 macOS 鑰匙圈中。任何能存取此電腦或取得密鑰的人都能產生你的安全碼。切勿將 QR 碼或密鑰分享給他人。";
+
+/* Window title TOTP */
+"Invalid Secret" = "無效密鑰";
+
+/* Window text TOTP */
+"The secret could not be saved." = "無法儲存密鑰。";
+
+/* Window text TOTP */
+"Could not save the TOTP secret to the Keychain." = "無法將 TOTP 密鑰儲存到鑰匙圈。";
+
+/* Window title TOTP */
+"Import Failed" = "匯入失敗";
+
+/* Window text TOTP */
+"Could not import the QR code." = "無法匯入 QR 碼。";
+
+/* Window text TOTP */
+"The TOTP secret is empty." = "TOTP 密鑰為空。";
+
+/* Window text TOTP */
+"The otpauth URI is invalid or does not contain a valid secret." = "otpauth URI 無效或不包含有效密鑰。";
+
+/* Window text TOTP */
+"The pasted text is not a valid otpauth URI or Base32 secret." = "貼上的內容不是有效的 otpauth URI 或 Base32 密鑰。";
+
+/* Window text TOTP */
+"No image file was selected." = "未選擇圖片檔案。";
+
+/* Window text TOTP */
+"Could not read the selected image file." = "無法讀取所選圖片檔案。";
+
+/* Window text TOTP */
+"Could not convert the image for QR decoding." = "無法轉換圖片以解碼 QR 碼。";
+
+/* Window text TOTP */
+"QR code detection failed." = "QR 碼辨識失敗。";
+
+/* Window text TOTP */
+"No QR code was found in the image." = "圖片中未找到 QR 碼。";
+
+/* Window text TOTP */
+"Automatic Security Code (TOTP) Version" = "自動安全碼 (TOTP) 版本";
+
+/* Window text TOTP */
+"\n\nThis version can store a Google Authenticator root secret for each VPN credentials group. When enabled, Tunnelblick generates the current six-digit security code when you connect and appends it to your password.\n\nThe root secret is stored in the macOS Keychain on this computer. Anyone with access to this computer or the secret can generate your security codes. Do not share the QR code or secret with others. If this device is lost or compromised, revoke and re-create the two-factor authentication secret on the VPN server." = "\n\n本版本支援為每個 VPN 認證資訊群組儲存 Google Authenticator 根密鑰。啟用後，連線 VPN 時 Tunnelblick 會自動產生目前 6 位安全碼並附加到密碼末尾。\n\n根密鑰儲存在本機 macOS 鑰匙圈中。任何能存取此電腦或取得密鑰的人都能產生你的安全碼。切勿將 QR 碼或密鑰分享給他人。若裝置遺失或被盜，請在 VPN 伺服器上撤銷並重新建立雙因素認證密鑰。";
+
+/* Window title TOTP */
+"Configuration Successful" = "設定成功";
+
+/* Window text TOTP */
+"Automatic security code has been enabled for this credentials group." = "已為此認證資訊群組啟用自動安全碼。";
+
+/* Window title TOTP */
+"Import Successful" = "匯入成功";
+
+/* Window text TOTP */
+"The TOTP secret from the QR code has been saved." = "QR 碼中的 TOTP 密鑰已儲存。";
+
+/* Window title TOTP */
+"Cleared" = "已清除";
+
+/* Window text TOTP */
+"The automatic security code secret has been removed." = "自動安全碼密鑰已刪除。";
+
+/* Window text TOTP */
+"Are you sure you want to remove the automatic security code secret?" = "確定要刪除自動安全碼密鑰嗎？";
+
+/* Button TOTP */
+"Clear Automatic Security Code" = "清除自動安全碼";
+
+/* Window text TOTP */
+"You can also manage this in Options → Advanced → VPN Credentials." = "也可在「選項 → 進階 → VPN 認證資訊」中管理或清除。";

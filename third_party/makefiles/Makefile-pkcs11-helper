@@ -22,10 +22,10 @@ built-pkcs11-helper: built-allssl
 	mkdir -p $(PKCS11_BUILD_DIR)
 	tar -x -f sources/$(PKCS11_NAME).tar.bz2 -C build
 	@echo "THIRD_PARTY: Building PKCS11-Helper..."
-	for a in $(PKCS11_TARGET_ARCHS); do \
+	set -e; for a in $(PKCS11_TARGET_ARCHS); do \
 		cd $(PKCS11_BUILD_DIR) ; \
 		echo "Clean PKCS11-Helper for $$a" ; \
-		$(MAKE) clean; \
+		if [ -f Makefile ]; then $(MAKE) clean; fi; \
 		echo "Configure PKCS11-Helper for $$a" ; \
 		if [ "$${a:0:3}" = "arm" ] ; then \
 			TB_CONFIGURE_BUILD="arm-apple-darwin" ; \
@@ -36,8 +36,7 @@ built-pkcs11-helper: built-allssl
 		CFLAGS="$(CFLAGS) -arch $$a" \
 		OPENSSL_CFLAGS="-I$(OPENSSL_1_1_STAGING_DIR)_$$a/include" \
 		OPENSSL_LIBS="-L$(OPENSSL_1_1_STAGING_DIR)_$$a/lib \
-		              -lssl \
-		              -lcrypto \
+		              -lssl -lcrypto \
 		              -lz" \
 		./configure --build="$$TB_CONFIGURE_BUILD" \
 		            --host="$(TB_CONFIGURE_HOST)" \

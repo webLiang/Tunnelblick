@@ -61,7 +61,7 @@ path_suffix () {
 
 codesign_v_t_or () {
 
-    # Sign an item (file, app, .dmg, or framework) with --timestamp and --options runtime
+    # Sign an item; Developer ID builds use timestamp and hardened runtime.
     #
     # codesign_v_t_or $1 [ $2 ]
     #   $1 = path
@@ -77,7 +77,14 @@ codesign_v_t_or () {
     set +e
         local command; command="--verbose    --timestamp    --options runtime    --sign \"$SIGNING_IDENTITY\"    $2    \"$1\""
 		# shellcheck disable=SC2086
-        codesign                --verbose    --timestamp    --options runtime    --sign "$SIGNING_IDENTITY"    $2    "$1" > "$TMP_FILE_PATH" 2>&1
+        if [ "$SIGNING_IDENTITY" = "-" ]; then
+            # Ad hoc signatures have no Team ID. Hardened runtime library validation
+            # would prevent the application from loading its bundled Sparkle framework.
+            command="--verbose --timestamp=none --options 0 --sign \"$SIGNING_IDENTITY\" $2 \"$1\""
+            codesign --verbose --timestamp=none --options 0 --sign "$SIGNING_IDENTITY" $2 "$1" > "$TMP_FILE_PATH" 2>&1
+        else
+            codesign --verbose --timestamp --options runtime --sign "$SIGNING_IDENTITY" $2 "$1" > "$TMP_FILE_PATH" 2>&1
+        fi
         status=$?
     set -e
 

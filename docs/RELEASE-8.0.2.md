@@ -34,7 +34,7 @@ python3 tests/run-tests.py
 bash scripts/build-release.sh
 ```
 
-The release script isolates host Homebrew build flags and runs the project's Release build. OpenSSL generated headers are completed before dependent compilation. Fresh OpenVPN sources skip cleanup until a configured Makefile exists. The packager verifies the version, Universal architecture, signature, bundled library paths, and all four OpenVPN engines before producing:
+The release script isolates host Homebrew build flags and runs the project's Release build. OpenSSL generated headers are completed before dependent compilation. Fresh OpenVPN sources skip cleanup until a configured Makefile exists. Legacy Tun/Tap builds run serially because they share intermediate object files, and failures stop the build. The packager verifies the version, Universal architecture, signature, bundled library paths, and all four OpenVPN engines before producing:
 
 - `Tunnelblick-8.0.2-macos-universal.zip`
 - `Tunnelblick-8.0.2-source.zip`

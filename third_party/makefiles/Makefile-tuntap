@@ -57,7 +57,7 @@ built-tuntap-prepare:
 	touch $(TOPDIR)/built-tuntap-prepare
 
 built-tuntap: built-tuntap-prepare
-	mkdir -p $(TUNTAP_PRODUCTS_DIR) ; \
+	set -e; mkdir -p $(TUNTAP_PRODUCTS_DIR) ; \
 	if [ -e $(TUNTAP_PREBUILT_TAP_NOTARIZED) ] ; then \
 		echo "THIRD_PARTY: Copying pre-built notarized tap kext" ; \
 		cp -f -a $(TUNTAP_PREBUILT_TAP_NOTARIZED) $(TUNTAP_PRODUCTS_DIR)/tap-notarized.kext ; \
@@ -74,7 +74,7 @@ built-tuntap: built-tuntap-prepare
 	echo "THIRD_PARTY: Building Tun/Tap for '$(TUNTAP_TARGET_ARCHS)' ($(TUNTAP_ARCH_ARGS)) with deploy-target '$(MACOSX_DEPLOYMENT_TARGET)' and SDK path '$(SDK_DIR)'" ; \
 	cd $(TUNTAP_BUILD_DIR) ; \
 	mkdir -p $(TUNTAP_PRODUCTS_DIR) ; \
-	$(MAKE) -C $(TUNTAP_CURRENT_NAME)/tuntap/ TUNTAP_ARCH_ARGS=\"$(TUNTAP_ARCH_ARGS)\" ; \
+	$(MAKE) -j1 -C $(TUNTAP_CURRENT_NAME)/tuntap/ TUNTAP_ARCH_ARGS=\"$(TUNTAP_ARCH_ARGS)\" ; \
 	cp -f -a $(TUNTAP_CURRENT_NAME)/tuntap/tap.kext $(TUNTAP_PRODUCTS_DIR)/tap.kext ; \
 	cp -f -a $(TUNTAP_CURRENT_NAME)/tuntap/tun.kext $(TUNTAP_PRODUCTS_DIR)/tun.kext ; \
 	echo "THIRD_PARTY: Built Tun/Tap" ; \

@@ -123,7 +123,7 @@ built-openvpn: built-openvpn-prepare built-lzo built-lz4 built-pkcs11-helper bui
                         if [ -e "$${ssl_staging_dir}_$$a" ] ; then \
                             echo "Making $$openvpn_name with $$ssl_name for $$a" ; \
                             \
-                            $(MAKE) clean; \
+                            if [ -f Makefile ]; then $(MAKE) clean; fi; \
                             \
                             if [ -f "$(OPENVPN_SOURCE_DIR)/$$openvpn_name/configure-options.txt" ] ; then \
                                 configure_options="$$(cat $(OPENVPN_SOURCE_DIR)/$$openvpn_name/configure-options.txt)" ; \
